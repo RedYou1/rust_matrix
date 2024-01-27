@@ -1,3 +1,5 @@
+use std::mem::MaybeUninit;
+
 mod add;
 mod div;
 mod mul;
@@ -46,6 +48,26 @@ impl<T, const WIDTH: usize, const HEIGHT: usize> Matrix<T, WIDTH, HEIGHT> {
     pub fn new(data: [[T; WIDTH]; HEIGHT]) -> Self {
         Self(data)
     }
+
+    pub fn new_fn<Data: Fn(usize, usize) -> T>(data: Data) -> Self {
+        let mut result: [[T; WIDTH]; HEIGHT] = unsafe { MaybeUninit::uninit().assume_init() };
+        for y in 0..HEIGHT {
+            for x in 0..WIDTH {
+                result[y][x] = data(x, y);
+            }
+        }
+        Self(result)
+    }
+
+    pub fn new_box_fn<Data: Fn(usize, usize) -> T>(data: Data) -> Box<Self> {
+        let mut result = unsafe { Box::<Self>::new_uninit().assume_init() };
+        for y in 0..HEIGHT {
+            for x in 0..WIDTH {
+                result.0[y][x] = data(x, y);
+            }
+        }
+        result
+    }
 }
 
 impl<T: Default + Copy, const SIDE: usize> Matrix<T, SIDE, SIDE> {
@@ -56,6 +78,7 @@ impl<T: Default + Copy, const SIDE: usize> Matrix<T, SIDE, SIDE> {
         }
         result
     }
+
     pub fn new_box_scale(data: T) -> Box<Self> {
         let mut result = unsafe { Box::<Self>::new_uninit().assume_init() };
         for y in 0..SIDE {
@@ -67,23 +90,23 @@ impl<T: Default + Copy, const SIDE: usize> Matrix<T, SIDE, SIDE> {
     }
 }
 
-impl<T: Default + Copy, const WIDTH: usize, const HEIGHT: usize> Matrix<T, WIDTH, HEIGHT> {
+impl<T: Clone, const WIDTH: usize, const HEIGHT: usize> Matrix<T, WIDTH, HEIGHT> {
     pub fn transpose(&self) -> Matrix<T, HEIGHT, WIDTH> {
-        let mut result = Matrix::<T, HEIGHT, WIDTH>::default();
+        let mut result: [[T; HEIGHT]; WIDTH] = unsafe { MaybeUninit::uninit().assume_init() };
         for y in 0..HEIGHT {
             for x in 0..WIDTH {
-                result.0[y][x] = self.0[x][y];
+                result[y][x] = self.0[x][y].clone();
             }
         }
-        result
+        Matrix(result)
     }
 }
 
-impl<T: Copy, const SIDE: usize> Matrix<T, SIDE, SIDE> {
+impl<T: Clone, const SIDE: usize> Matrix<T, SIDE, SIDE> {
     pub fn transpose_self(&mut self) -> &mut Self {
         for d in 0..SIDE - 1 {
             for opp in d + 1..SIDE {
-                (self.0[d][opp], self.0[opp][d]) = (self.0[opp][d], self.0[d][opp]);
+                (self.0[d][opp], self.0[opp][d]) = (self.0[opp][d].clone(), self.0[d][opp].clone());
             }
         }
         self

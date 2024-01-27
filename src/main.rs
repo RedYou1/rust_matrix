@@ -145,6 +145,20 @@ fn test_big_mul() {
         &Box::new(Matrix::<i32, 4, 4>::default())
     );
 
+    assert_eq!(
+        &Matrix::<usize, 4, 4>::new_box_fn(|x, y| x * y),
+        &Box::new(Matrix::<usize, 4, 4>::new([
+            [0, 0, 0, 0],
+            [0, 1, 2, 3],
+            [0, 2, 4, 6],
+            [0, 3, 6, 9]
+        ]))
+    );
+    assert_eq!(
+        &Matrix::<usize, 10, 10>::new_box_fn(|x, y| x * y),
+        &Box::new(Matrix::<usize, 10, 10>::new_fn(|x, y| x * y))
+    );
+
     const SIDE: usize = 512;
     let mut mat_a = Matrix::<i32, SIDE, SIDE>::new_box_unit(69);
     let mat_b = Matrix::<i32, SIDE, SIDE>::new_box_scale(2);

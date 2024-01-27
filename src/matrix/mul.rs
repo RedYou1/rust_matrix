@@ -1,35 +1,34 @@
 use super::Matrix;
 use std::{
     iter::Sum,
+    mem::MaybeUninit,
     ops::{AddAssign, Mul, MulAssign, Range},
 };
 
-impl<T: Default + Copy + Mul<Output = T>, const WIDTH: usize, const HEIGHT: usize>
-    Matrix<T, WIDTH, HEIGHT>
-{
+impl<T: Clone + Mul<Output = T>, const WIDTH: usize, const HEIGHT: usize> Matrix<T, WIDTH, HEIGHT> {
     pub fn mul_scale(&self, data: &T) -> Matrix<T, WIDTH, HEIGHT> {
-        let mut result = Matrix::<T, WIDTH, HEIGHT>::default();
+        let mut result: [[T; WIDTH]; HEIGHT] = unsafe { MaybeUninit::uninit().assume_init() };
         for y in 0..HEIGHT {
             for x in 0..WIDTH {
-                result.0[y][x] = self.0[y][x] * *data;
+                result[y][x] = self.0[y][x].clone() * data.clone();
             }
         }
-        result
+        Self(result)
     }
 }
 
-impl<T: Copy + MulAssign, const WIDTH: usize, const HEIGHT: usize> Matrix<T, WIDTH, HEIGHT> {
+impl<T: Clone + MulAssign, const WIDTH: usize, const HEIGHT: usize> Matrix<T, WIDTH, HEIGHT> {
     pub fn mul_scale_self(&mut self, data: &T) -> &mut Self {
         for y in 0..HEIGHT {
             for x in 0..WIDTH {
-                self.0[y][x] *= *data;
+                self.0[y][x] *= data.clone();
             }
         }
         self
     }
 }
 
-impl<T: Default + Copy + Mul<Output = T>, const WIDTH: usize, const HEIGHT: usize> Mul<T>
+impl<T: Clone + Mul<Output = T>, const WIDTH: usize, const HEIGHT: usize> Mul<T>
     for Matrix<T, WIDTH, HEIGHT>
 {
     type Output = Matrix<T, WIDTH, HEIGHT>;
@@ -39,7 +38,7 @@ impl<T: Default + Copy + Mul<Output = T>, const WIDTH: usize, const HEIGHT: usiz
     }
 }
 
-impl<T: Copy + MulAssign, const WIDTH: usize, const HEIGHT: usize> MulAssign<T>
+impl<T: Clone + MulAssign, const WIDTH: usize, const HEIGHT: usize> MulAssign<T>
     for Matrix<T, WIDTH, HEIGHT>
 {
     fn mul_assign(&mut self, rhs: T) {
@@ -47,25 +46,25 @@ impl<T: Copy + MulAssign, const WIDTH: usize, const HEIGHT: usize> MulAssign<T>
     }
 }
 
-impl<T: Default + Copy + Sum<T> + Mul<Output = T>, const COMMUN: usize, const HEIGHT: usize>
+impl<T: Clone + Sum<T> + Mul<Output = T>, const COMMUN: usize, const HEIGHT: usize>
     Matrix<T, COMMUN, HEIGHT>
 {
     pub fn mul_ref<const OWIDTH: usize>(
         &self,
         other: &Matrix<T, OWIDTH, COMMUN>,
     ) -> Matrix<T, OWIDTH, HEIGHT> {
-        let mut result = Matrix::<T, OWIDTH, HEIGHT>::default();
+        let mut result: [[T; OWIDTH]; HEIGHT] = unsafe { MaybeUninit::uninit().assume_init() };
         for ry in 0..HEIGHT {
             for rx in 0..OWIDTH {
-                result.0[ry][rx] = Range {
+                result[ry][rx] = Range {
                     start: 0,
                     end: COMMUN,
                 }
-                .map(|c| self.0[ry][c] * other.0[c][rx])
+                .map(|c| self.0[ry][c].clone() * other.0[c][rx].clone())
                 .sum();
             }
         }
-        result
+        Matrix(result)
     }
 }
 
@@ -85,7 +84,7 @@ impl<T: Default + Copy + AddAssign + Mul<Output = T>, const SIDE: usize> Matrix<
 }
 
 impl<
-        T: Default + Copy + Sum<T> + Mul<Output = T>,
+        T: Copy + Sum<T> + Mul<Output = T>,
         const COMMUN: usize,
         const HEIGHT: usize,
         const OWIDTH: usize,
