@@ -15,14 +15,23 @@ fn main() {
 fn test_add_sub() {
     assert_eq!(
         *Matrix::<i32, 2, 2>::default()
-            .add_self(&Matrix::new_unit(1))
-            .sub_self(&Matrix::new_unit(-2)),
+            .add_ref_self(&Matrix::new_unit(1))
+            .sub_ref_self(&Matrix::new_unit(-2)),
+        Matrix::new([[3, 3], [3, 3]])
+    );
+    assert_eq!(
+        Matrix::<i32, 2, 2>::default() + Matrix::new_unit(1) - Matrix::new_unit(-2),
         Matrix::new([[3, 3], [3, 3]])
     );
 
     let mut mat = Matrix::<i32, 2, 2>::default();
-    mat = mat.add(&Matrix::new_unit(1));
-    mat = mat.sub(&Matrix::new_unit(-2));
+    mat = mat.add_ref(&Matrix::new_unit(1));
+    mat = mat.sub_ref(&Matrix::new_unit(-2));
+    assert_eq!(mat, Matrix::new([[3, 3], [3, 3]]));
+
+    let mut mat = Matrix::<i32, 2, 2>::default();
+    mat += Matrix::new_unit(1);
+    mat -= Matrix::new_unit(-2);
     assert_eq!(mat, Matrix::new([[3, 3], [3, 3]]));
 }
 
@@ -50,16 +59,28 @@ fn test_scale_math() {
     );
 
     let mut scale = Matrix::<i32, 2, 2>::default();
+    scale += 6;
+    scale *= 2;
+    scale -= 1;
+    scale /= 3;
+    assert_eq!(scale, Matrix::new([[3, 3], [3, 3]]));
+
+    let mut scale = Matrix::<i32, 2, 2>::default();
     scale = scale.add_scale(&6);
     scale = scale.mul_scale(&2);
     scale = scale.sub_scale(&1);
     scale = scale.div_scale(&3);
     assert_eq!(scale, Matrix::new([[3, 3], [3, 3]]));
+
+    assert_eq!(
+        (((Matrix::<i32, 2, 2>::default() + 6) * 2) - 1) / 3,
+        Matrix::new([[3, 3], [3, 3]])
+    );
 }
 
 fn test_mul() {
     assert_eq!(
-        Matrix::new([[4, 0, 6], [6, 6, 1], [0, 7, 9], [7, 4, 0]]).mul(&Matrix::new([
+        Matrix::new([[4, 0, 6], [6, 6, 1], [0, 7, 9], [7, 4, 0]]).mul_ref(&Matrix::new([
             [4, 0, 6, 6],
             [6, 1, 0, 7],
             [9, 7, 4, 0]
@@ -72,9 +93,32 @@ fn test_mul() {
         ])
     );
     assert_eq!(
-        *Matrix::new([[4, 0, 6, 8], [6, 6, 1, 5], [0, 7, 9, 1], [7, 4, 0, 2]]).mul_self(
+        Matrix::new([[4, 0, 6], [6, 6, 1], [0, 7, 9], [7, 4, 0]])
+            * Matrix::new([[4, 0, 6, 6], [6, 1, 0, 7], [9, 7, 4, 0]]),
+        Matrix::new([
+            [70, 42, 48, 24],
+            [69, 13, 40, 78],
+            [123, 70, 36, 49],
+            [52, 4, 42, 70]
+        ])
+    );
+
+    assert_eq!(
+        *Matrix::new([[4, 0, 6, 8], [6, 6, 1, 5], [0, 7, 9, 1], [7, 4, 0, 2]]).mul_ref_self(
             &Matrix::new([[4, 0, 6, 6], [6, 1, 0, 7], [9, 7, 4, 0], [1, 3, 9, 8]])
         ),
+        Matrix::new([
+            [78, 66, 120, 88],
+            [74, 28, 85, 118],
+            [124, 73, 45, 57],
+            [54, 10, 60, 86]
+        ])
+    );
+
+    let mut mat = Matrix::new([[4, 0, 6, 8], [6, 6, 1, 5], [0, 7, 9, 1], [7, 4, 0, 2]]);
+    mat *= Matrix::new([[4, 0, 6, 6], [6, 1, 0, 7], [9, 7, 4, 0], [1, 3, 9, 8]]);
+    assert_eq!(
+        mat,
         Matrix::new([
             [78, 66, 120, 88],
             [74, 28, 85, 118],
@@ -104,5 +148,8 @@ fn test_big_mul() {
     const SIDE: usize = 512;
     let mut mat_a = Matrix::<i32, SIDE, SIDE>::new_box_unit(69);
     let mat_b = Matrix::<i32, SIDE, SIDE>::new_box_scale(2);
-    assert_eq!(mat_a.mul_self(&mat_b), Matrix::new_box_unit(138).as_mut());
+    assert_eq!(
+        mat_a.mul_ref_self(&mat_b),
+        Matrix::new_box_unit(138).as_mut()
+    );
 }

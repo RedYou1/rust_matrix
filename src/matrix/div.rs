@@ -25,3 +25,21 @@ impl<T: Copy + DivAssign, const WIDTH: usize, const HEIGHT: usize> Matrix<T, WID
         self
     }
 }
+
+impl<T: Default + Copy + Div<Output = T>, const WIDTH: usize, const HEIGHT: usize> Div<T>
+    for Matrix<T, WIDTH, HEIGHT>
+{
+    type Output = Matrix<T, WIDTH, HEIGHT>;
+
+    fn div(self, rhs: T) -> Self::Output {
+        self.div_scale(&rhs)
+    }
+}
+
+impl<T: Copy + DivAssign, const WIDTH: usize, const HEIGHT: usize> DivAssign<T>
+    for Matrix<T, WIDTH, HEIGHT>
+{
+    fn div_assign(&mut self, rhs: T) {
+        self.div_scale_self(&rhs);
+    }
+}
