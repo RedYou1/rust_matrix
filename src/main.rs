@@ -36,11 +36,12 @@ fn test_add_sub() {
 }
 
 fn test_transpose() {
-    let mut transpose = Matrix::new([[4, 6, 0, 7], [0, 6, 7, 4], [6, 1, 9, 0], [8, 3, 2, 5]]);
+    let transpose = Matrix::new([[4, 6, 0, 7], [0, 6, 7, 4], [6, 1, 9, 0]]);
     assert_eq!(
         transpose.transpose(),
-        Matrix::new([[4, 0, 6, 8], [6, 6, 1, 3], [0, 7, 9, 2], [7, 4, 0, 5]])
+        Matrix::new([[4, 0, 6], [6, 6, 1], [0, 7, 9], [7, 4, 0]])
     );
+    let mut transpose = Matrix::new([[4, 6, 0, 7], [0, 6, 7, 4], [6, 1, 9, 0], [8, 3, 2, 5]]);
     transpose.transpose_self();
     assert_eq!(
         transpose,

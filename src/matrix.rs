@@ -95,7 +95,7 @@ impl<T: Clone, const WIDTH: usize, const HEIGHT: usize> Matrix<T, WIDTH, HEIGHT>
         let mut result: [[T; HEIGHT]; WIDTH] = unsafe { MaybeUninit::uninit().assume_init() };
         for y in 0..HEIGHT {
             for x in 0..WIDTH {
-                result[y][x] = self.0[x][y].clone();
+                result[x][y] = self.0[y][x].clone();
             }
         }
         Matrix(result)
