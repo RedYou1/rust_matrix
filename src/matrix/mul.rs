@@ -8,9 +8,9 @@ use std::{
 impl<T: Clone + Mul<Output = T>, const WIDTH: usize, const HEIGHT: usize> Matrix<T, WIDTH, HEIGHT> {
     pub fn mul_scale(&self, data: &T) -> Matrix<T, WIDTH, HEIGHT> {
         let mut result: [[T; WIDTH]; HEIGHT] = unsafe { MaybeUninit::uninit().assume_init() };
-        for y in 0..HEIGHT {
-            for x in 0..WIDTH {
-                result[y][x] = self.0[y][x].clone() * data.clone();
+        for (y, row) in result.iter_mut().enumerate() {
+            for (x, item) in row.iter_mut().enumerate() {
+                *item = self.0[y][x].clone() * data.clone();
             }
         }
         Self(result)
@@ -19,9 +19,9 @@ impl<T: Clone + Mul<Output = T>, const WIDTH: usize, const HEIGHT: usize> Matrix
 
 impl<T: Clone + MulAssign, const WIDTH: usize, const HEIGHT: usize> Matrix<T, WIDTH, HEIGHT> {
     pub fn mul_scale_self(&mut self, data: &T) -> &mut Self {
-        for y in 0..HEIGHT {
-            for x in 0..WIDTH {
-                self.0[y][x] *= data.clone();
+        for row in &mut self.0 {
+            for item in row {
+                *item *= data.clone();
             }
         }
         self
@@ -54,9 +54,9 @@ impl<T: Clone + Sum<T> + Mul<Output = T>, const COMMUN: usize, const HEIGHT: usi
         other: &Matrix<T, OWIDTH, COMMUN>,
     ) -> Matrix<T, OWIDTH, HEIGHT> {
         let mut result: [[T; OWIDTH]; HEIGHT] = unsafe { MaybeUninit::uninit().assume_init() };
-        for ry in 0..HEIGHT {
-            for rx in 0..OWIDTH {
-                result[ry][rx] = Range {
+        for (ry, row) in result.iter_mut().enumerate() {
+            for (rx, item) in row.iter_mut().enumerate() {
+                *item = Range {
                     start: 0,
                     end: COMMUN,
                 }
@@ -72,9 +72,9 @@ impl<T: Default + Copy + AddAssign + Mul<Output = T>, const SIDE: usize> Matrix<
     pub fn mul_ref_self(&mut self, other: &Matrix<T, SIDE, SIDE>) -> &mut Self {
         for ry in 0..SIDE {
             let mut temp = [T::default(); SIDE];
-            for rx in 0..SIDE {
+            for (rx, item) in temp.iter_mut().enumerate() {
                 for c in 0..SIDE {
-                    temp[rx] += self.0[ry][c] * other.0[c][rx];
+                    *item += self.0[ry][c] * other.0[c][rx];
                 }
             }
             self.0[ry] = temp;

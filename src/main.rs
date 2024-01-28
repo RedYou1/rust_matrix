@@ -23,7 +23,8 @@ fn test_add_sub_rem() {
         Matrix::new([[3, 3], [3, 3]])
     );
     assert_eq!(
-        (Matrix::<i32, 2, 2>::default() + Matrix::new_unit(4) - Matrix::new_unit(-3)) % Matrix::new_unit(4),
+        (Matrix::<i32, 2, 2>::default() + Matrix::new_unit(4) - Matrix::new_unit(-3))
+            % Matrix::new_unit(4),
         Matrix::new([[3, 3], [3, 3]])
     );
 
@@ -140,15 +141,17 @@ fn test_square() {
     assert!(Matrix::new([[1, 1, 1, 1], [0, 1, 1, 1], [0, 0, 1, 1], [0, 0, 0, 1]]).is_trig_sup());
     assert!(!Matrix::new([[4, 0, 6, 8], [6, 6, 1, 3], [0, 7, 9, 2], [7, 4, 0, 5]]).is_trig_sup());
 
-    assert!(!Matrix::new([[4, 0, 6, 8], [6, 6, 1, 3], [0, 7, 9, 2], [7, 4, 0, 5]]).is_scale(1));
+    assert!(!Matrix::new([[4, 0, 6, 8], [6, 6, 1, 3], [0, 7, 9, 2], [7, 4, 0, 5]]).is_scale(&1));
     assert!(Matrix::<i32, 5, 5>::new_scale(5).is_diagonale());
-    assert!(Matrix::<i32, 5, 5>::new_scale(5).is_scale(5));
+    assert!(Matrix::<i32, 5, 5>::new_scale(5).is_scale(&5));
 }
 
 fn test_big_mul() {
+    const SIDE: usize = 512;
+
     assert_eq!(
         &Matrix::<i32, 4, 4>::default_box(),
-        &Box::new(Matrix::<i32, 4, 4>::default())
+        &Box::<Matrix::<i32, 4, 4>>::default()
     );
 
     assert_eq!(
@@ -165,7 +168,6 @@ fn test_big_mul() {
         &Box::new(Matrix::<usize, 10, 10>::new_fn(|x, y| x * y))
     );
 
-    const SIDE: usize = 512;
     let mut mat_a = Matrix::<i32, SIDE, SIDE>::new_box_unit(69);
     let mat_b = Matrix::<i32, SIDE, SIDE>::new_box_scale(2);
     assert_eq!(
@@ -179,7 +181,7 @@ fn test_neg() {
     assert_eq!(-Matrix::<f64, 5, 5>::new_unit(1.0), Matrix::new_unit(-1.0));
 }
 
-fn test_not(){
+fn test_not() {
     assert_eq!(!Matrix::<u8, 5, 5>::new_unit(1), Matrix::new_unit(!1));
     assert_eq!(!Matrix::<i64, 5, 5>::new_unit(450), Matrix::new_unit(!450));
 }

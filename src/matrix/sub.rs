@@ -7,9 +7,9 @@ use std::{
 impl<T: Clone + Sub<Output = T>, const WIDTH: usize, const HEIGHT: usize> Matrix<T, WIDTH, HEIGHT> {
     pub fn sub_scale(&self, data: &T) -> Matrix<T, WIDTH, HEIGHT> {
         let mut result: [[T; WIDTH]; HEIGHT] = unsafe { MaybeUninit::uninit().assume_init() };
-        for y in 0..HEIGHT {
-            for x in 0..WIDTH {
-                result[y][x] = self.0[y][x].clone() - data.clone();
+        for (y, row) in result.iter_mut().enumerate() {
+            for (x, item) in row.iter_mut().enumerate() {
+                *item = self.0[y][x].clone() - data.clone();
             }
         }
         Self(result)
@@ -18,9 +18,9 @@ impl<T: Clone + Sub<Output = T>, const WIDTH: usize, const HEIGHT: usize> Matrix
 
 impl<T: Clone + SubAssign, const WIDTH: usize, const HEIGHT: usize> Matrix<T, WIDTH, HEIGHT> {
     pub fn sub_scale_self(&mut self, data: &T) -> &mut Self {
-        for y in 0..HEIGHT {
-            for x in 0..WIDTH {
-                self.0[y][x] -= data.clone();
+        for row in &mut self.0 {
+            for item in row {
+                *item -= data.clone();
             }
         }
         self
@@ -48,9 +48,9 @@ impl<T: Clone + SubAssign, const WIDTH: usize, const HEIGHT: usize> SubAssign<T>
 impl<T: Clone + Sub<Output = T>, const WIDTH: usize, const HEIGHT: usize> Matrix<T, WIDTH, HEIGHT> {
     pub fn sub_ref(&self, other: &Matrix<T, WIDTH, HEIGHT>) -> Matrix<T, WIDTH, HEIGHT> {
         let mut result: [[T; WIDTH]; HEIGHT] = unsafe { MaybeUninit::uninit().assume_init() };
-        for y in 0..HEIGHT {
-            for x in 0..WIDTH {
-                result[y][x] = self.0[y][x].clone() - other.0[y][x].clone();
+        for (y, row) in result.iter_mut().enumerate() {
+            for (x, item) in row.iter_mut().enumerate() {
+                *item = self.0[y][x].clone() - other.0[y][x].clone();
             }
         }
         Self(result)
@@ -59,9 +59,9 @@ impl<T: Clone + Sub<Output = T>, const WIDTH: usize, const HEIGHT: usize> Matrix
 
 impl<T: Clone + SubAssign, const WIDTH: usize, const HEIGHT: usize> Matrix<T, WIDTH, HEIGHT> {
     pub fn sub_ref_self(&mut self, other: &Matrix<T, WIDTH, HEIGHT>) -> &mut Self {
-        for y in 0..HEIGHT {
-            for x in 0..WIDTH {
-                self.0[y][x] -= other.0[y][x].clone();
+        for (y, row) in self.0.iter_mut().enumerate() {
+            for (x, item) in row.iter_mut().enumerate() {
+                *item -= other.0[y][x].clone();
             }
         }
         self

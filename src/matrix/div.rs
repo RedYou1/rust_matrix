@@ -1,14 +1,15 @@
 use super::Matrix;
-use std::{mem::MaybeUninit, ops::{Div, DivAssign}};
+use std::{
+    mem::MaybeUninit,
+    ops::{Div, DivAssign},
+};
 
-impl<T: Clone + Div<Output = T>, const WIDTH: usize, const HEIGHT: usize>
-    Matrix<T, WIDTH, HEIGHT>
-{
+impl<T: Clone + Div<Output = T>, const WIDTH: usize, const HEIGHT: usize> Matrix<T, WIDTH, HEIGHT> {
     pub fn div_scale(&self, data: &T) -> Matrix<T, WIDTH, HEIGHT> {
         let mut result: [[T; WIDTH]; HEIGHT] = unsafe { MaybeUninit::uninit().assume_init() };
-        for y in 0..HEIGHT {
-            for x in 0..WIDTH {
-                result[y][x] = self.0[y][x].clone() / data.clone();
+        for (y, row) in result.iter_mut().enumerate() {
+            for (x, item) in row.iter_mut().enumerate() {
+                *item = self.0[y][x].clone() / data.clone();
             }
         }
         Self(result)
@@ -17,9 +18,9 @@ impl<T: Clone + Div<Output = T>, const WIDTH: usize, const HEIGHT: usize>
 
 impl<T: Clone + DivAssign, const WIDTH: usize, const HEIGHT: usize> Matrix<T, WIDTH, HEIGHT> {
     pub fn div_scale_self(&mut self, data: &T) -> &mut Self {
-        for y in 0..HEIGHT {
-            for x in 0..WIDTH {
-                self.0[y][x] /= data.clone();
+        for row in &mut self.0 {
+            for item in row {
+                *item /= data.clone();
             }
         }
         self

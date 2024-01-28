@@ -20,9 +20,9 @@ impl<T: Default + Copy, const WIDTH: usize, const HEIGHT: usize> Default
 impl<T: Default + Copy, const WIDTH: usize, const HEIGHT: usize> Matrix<T, WIDTH, HEIGHT> {
     pub fn default_box() -> Box<Self> {
         let mut result = unsafe { Box::<Self>::new_uninit().assume_init() };
-        for y in 0..HEIGHT {
-            for x in 0..WIDTH {
-                result.0[y][x] = T::default();
+        for y in &mut result.as_mut().0 {
+            for x in y {
+                *x = T::default();
             }
         }
         result
@@ -30,15 +30,15 @@ impl<T: Default + Copy, const WIDTH: usize, const HEIGHT: usize> Matrix<T, WIDTH
 }
 
 impl<T: Copy, const WIDTH: usize, const HEIGHT: usize> Matrix<T, WIDTH, HEIGHT> {
-    pub fn new_unit(data: T) -> Self {
+    pub const fn new_unit(data: T) -> Self {
         Self([[data; WIDTH]; HEIGHT])
     }
 
     pub fn new_box_unit(data: T) -> Box<Self> {
         let mut result = unsafe { Box::<Self>::new_uninit().assume_init() };
-        for y in 0..HEIGHT {
-            for x in 0..WIDTH {
-                result.0[y][x] = data;
+        for y in &mut result.as_mut().0 {
+            for x in y {
+                *x = data;
             }
         }
         result
@@ -46,15 +46,15 @@ impl<T: Copy, const WIDTH: usize, const HEIGHT: usize> Matrix<T, WIDTH, HEIGHT> 
 }
 
 impl<T, const WIDTH: usize, const HEIGHT: usize> Matrix<T, WIDTH, HEIGHT> {
-    pub fn new(data: [[T; WIDTH]; HEIGHT]) -> Self {
+    pub const fn new(data: [[T; WIDTH]; HEIGHT]) -> Self {
         Self(data)
     }
 
     pub fn new_fn<Data: Fn(usize, usize) -> T>(data: Data) -> Self {
         let mut result: [[T; WIDTH]; HEIGHT] = unsafe { MaybeUninit::uninit().assume_init() };
-        for y in 0..HEIGHT {
-            for x in 0..WIDTH {
-                result[y][x] = data(x, y);
+        for (y, row) in result.iter_mut().enumerate() {
+            for (x, item) in row.iter_mut().enumerate() {
+                *item = data(x, y);
             }
         }
         Self(result)
@@ -62,9 +62,9 @@ impl<T, const WIDTH: usize, const HEIGHT: usize> Matrix<T, WIDTH, HEIGHT> {
 
     pub fn new_box_fn<Data: Fn(usize, usize) -> T>(data: Data) -> Box<Self> {
         let mut result = unsafe { Box::<Self>::new_uninit().assume_init() };
-        for y in 0..HEIGHT {
-            for x in 0..WIDTH {
-                result.0[y][x] = data(x, y);
+        for (y, row) in result.0.iter_mut().enumerate() {
+            for (x, item) in row.iter_mut().enumerate() {
+                *item = data(x, y);
             }
         }
         result
@@ -82,9 +82,9 @@ impl<T: Default + Copy, const SIDE: usize> Matrix<T, SIDE, SIDE> {
 
     pub fn new_box_scale(data: T) -> Box<Self> {
         let mut result = unsafe { Box::<Self>::new_uninit().assume_init() };
-        for y in 0..SIDE {
-            for x in 0..SIDE {
-                result.0[y][x] = if x == y { data } else { T::default() };
+        for (y, row) in result.0.iter_mut().enumerate() {
+            for (x, item) in row.iter_mut().enumerate() {
+                *item = if x == y { data } else { T::default() };
             }
         }
         result
@@ -94,9 +94,9 @@ impl<T: Default + Copy, const SIDE: usize> Matrix<T, SIDE, SIDE> {
 impl<T: Clone, const WIDTH: usize, const HEIGHT: usize> Matrix<T, WIDTH, HEIGHT> {
     pub fn transpose(&self) -> Matrix<T, HEIGHT, WIDTH> {
         let mut result: [[T; HEIGHT]; WIDTH] = unsafe { MaybeUninit::uninit().assume_init() };
-        for y in 0..HEIGHT {
-            for x in 0..WIDTH {
-                result[x][y] = self.0[y][x].clone();
+        for (x, row) in result.iter_mut().enumerate() {
+            for (y, item) in row.iter_mut().enumerate() {
+                *item = self.0[y][x].clone();
             }
         }
         Matrix(result)
@@ -123,7 +123,7 @@ impl<T: Default + PartialEq, const SIDE: usize> Matrix<T, SIDE, SIDE> {
                 }
             }
         }
-        return true;
+        true
     }
 
     pub fn is_trig_sup(&self) -> bool {
@@ -134,33 +134,33 @@ impl<T: Default + PartialEq, const SIDE: usize> Matrix<T, SIDE, SIDE> {
                 }
             }
         }
-        return true;
+        true
     }
 
     pub fn is_diagonale(&self) -> bool {
-        for y in 0..SIDE {
-            for x in 0..SIDE {
-                if y != x && self.0[y][x] != T::default() {
+        for (y, row) in self.0.iter().enumerate() {
+            for (x, item) in row.iter().enumerate() {
+                if y != x && *item != T::default() {
                     return false;
                 }
             }
         }
-        return true;
+        true
     }
 
-    pub fn is_scale(&self, value: T) -> bool {
-        for y in 0..SIDE {
-            for x in 0..SIDE {
+    pub fn is_scale(&self, value: &T) -> bool {
+        for (y, row) in self.0.iter().enumerate() {
+            for (x, item) in row.iter().enumerate() {
                 if y == x {
-                    if self.0[y][x] != value {
+                    if *item != *value {
                         return false;
                     }
-                } else if self.0[y][x] != T::default() {
+                } else if *item != T::default() {
                     return false;
                 }
             }
         }
-        return true;
+        true
     }
 }
 
@@ -187,9 +187,9 @@ impl<T: Clone + Not<Output = T>, const WIDTH: usize, const HEIGHT: usize> Not
 
     fn not(self) -> Self::Output {
         let mut result: [[T; WIDTH]; HEIGHT] = unsafe { MaybeUninit::uninit().assume_init() };
-        for y in 0..HEIGHT {
-            for x in 0..WIDTH {
-                result[y][x] = !self.0[y][x].clone();
+        for (y, row) in result.iter_mut().enumerate() {
+            for (x, item) in row.iter_mut().enumerate() {
+                *item = !self.0[y][x].clone();
             }
         }
         Matrix(result)
