@@ -4,34 +4,39 @@ mod matrix;
 use crate::matrix::Matrix;
 
 fn main() {
-    test_add_sub();
+    test_add_sub_rem();
     test_transpose();
     test_scale_math();
     test_mul();
     test_square();
     test_big_mul();
+    test_neg();
+    test_not();
 }
 
-fn test_add_sub() {
+fn test_add_sub_rem() {
     assert_eq!(
         *Matrix::<i32, 2, 2>::default()
-            .add_ref_self(&Matrix::new_unit(1))
-            .sub_ref_self(&Matrix::new_unit(-2)),
+            .add_ref_self(&Matrix::new_unit(4))
+            .sub_ref_self(&Matrix::new_unit(-3))
+            .rem_ref_self(&Matrix::new_unit(4)),
         Matrix::new([[3, 3], [3, 3]])
     );
     assert_eq!(
-        Matrix::<i32, 2, 2>::default() + Matrix::new_unit(1) - Matrix::new_unit(-2),
+        (Matrix::<i32, 2, 2>::default() + Matrix::new_unit(4) - Matrix::new_unit(-3)) % Matrix::new_unit(4),
         Matrix::new([[3, 3], [3, 3]])
     );
 
     let mut mat = Matrix::<i32, 2, 2>::default();
-    mat = mat.add_ref(&Matrix::new_unit(1));
-    mat = mat.sub_ref(&Matrix::new_unit(-2));
+    mat = mat.add_ref(&Matrix::new_unit(4));
+    mat = mat.sub_ref(&Matrix::new_unit(-3));
+    mat = mat.rem_ref(&Matrix::new_unit(-4));
     assert_eq!(mat, Matrix::new([[3, 3], [3, 3]]));
 
     let mut mat = Matrix::<i32, 2, 2>::default();
-    mat += Matrix::new_unit(1);
-    mat -= Matrix::new_unit(-2);
+    mat += Matrix::new_unit(4);
+    mat -= Matrix::new_unit(-3);
+    mat %= Matrix::new_unit(-4);
     assert_eq!(mat, Matrix::new([[3, 3], [3, 3]]));
 }
 
@@ -167,4 +172,14 @@ fn test_big_mul() {
         mat_a.mul_ref_self(&mat_b),
         Matrix::new_box_unit(138).as_mut()
     );
+}
+
+fn test_neg() {
+    assert_eq!(-Matrix::<i32, 5, 5>::new_unit(1), Matrix::new_unit(-1));
+    assert_eq!(-Matrix::<f64, 5, 5>::new_unit(1.0), Matrix::new_unit(-1.0));
+}
+
+fn test_not(){
+    assert_eq!(!Matrix::<u8, 5, 5>::new_unit(1), Matrix::new_unit(!1));
+    assert_eq!(!Matrix::<i64, 5, 5>::new_unit(450), Matrix::new_unit(!450));
 }

@@ -2,7 +2,7 @@ use super::Matrix;
 use std::{
     iter::Sum,
     mem::MaybeUninit,
-    ops::{AddAssign, Mul, MulAssign, Range},
+    ops::{AddAssign, Mul, MulAssign, Neg, Range},
 };
 
 impl<T: Clone + Mul<Output = T>, const WIDTH: usize, const HEIGHT: usize> Matrix<T, WIDTH, HEIGHT> {
@@ -104,3 +104,19 @@ impl<T: Default + Copy + AddAssign + Mul<Output = T>, const SIDE: usize> MulAssi
         self.mul_ref_self(&rhs);
     }
 }
+
+macro_rules! impl_neg_matrix {
+    ($($ty:ty),*) => {
+        $(
+        impl<const WIDTH: usize, const HEIGHT: usize> Neg for Matrix<$ty, WIDTH, HEIGHT> {
+            type Output = Matrix<$ty, WIDTH, HEIGHT>;
+
+            fn neg(self) -> Self::Output {
+                self * (-1 as $ty)
+            }
+        }
+        )*
+    };
+}
+
+impl_neg_matrix!(isize, i8, i16, i32, i64, i128, f32, f64);

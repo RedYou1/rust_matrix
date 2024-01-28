@@ -1,8 +1,9 @@
-use std::mem::MaybeUninit;
+use std::{mem::MaybeUninit, ops::Not};
 
 mod add;
 mod div;
 mod mul;
+mod rem;
 mod sub;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -176,5 +177,21 @@ impl<T, const WIDTH: usize, const HEIGHT: usize> AsMut<[[T; WIDTH]; HEIGHT]>
 {
     fn as_mut(&mut self) -> &mut [[T; WIDTH]; HEIGHT] {
         &mut self.0
+    }
+}
+
+impl<T: Clone + Not<Output = T>, const WIDTH: usize, const HEIGHT: usize> Not
+    for Matrix<T, WIDTH, HEIGHT>
+{
+    type Output = Matrix<T, WIDTH, HEIGHT>;
+
+    fn not(self) -> Self::Output {
+        let mut result: [[T; WIDTH]; HEIGHT] = unsafe { MaybeUninit::uninit().assume_init() };
+        for y in 0..HEIGHT {
+            for x in 0..WIDTH {
+                result[y][x] = !self.0[y][x].clone();
+            }
+        }
+        Matrix(result)
     }
 }
