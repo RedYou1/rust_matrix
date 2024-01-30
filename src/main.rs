@@ -12,6 +12,7 @@ fn main() {
     test_big_mul();
     test_neg();
     test_not();
+    test_inv();
 }
 
 fn test_add_sub_rem() {
@@ -184,4 +185,22 @@ fn test_neg() {
 fn test_not() {
     assert_eq!(!Matrix::<u8, 5, 5>::new_unit(1), Matrix::new_unit(!1));
     assert_eq!(!Matrix::<i64, 5, 5>::new_unit(450), Matrix::new_unit(!450));
+}
+
+fn test_inv() {
+    let mat_a = Matrix::<f64, 2, 2>::new([[7.1, 3.6], [1.9, 3.1]]);
+    let mat_b = mat_a.inverse().expect("cant inverse mat_a");
+    let mat_i = Matrix::new_scale(1.0);
+    assert_eq!(mat_a.mul_ref(&mat_b), mat_i);
+    assert_eq!(mat_b.mul_ref(&mat_a), mat_i);
+
+    let [[a1, b1], [c1, d1]] = mat_b.as_ref();
+    let mat_a = Matrix::<f32, 2, 2>::new([[7.1, 3.6], [1.9, 3.1]]);
+    let mat_b = mat_a.inverse().expect("cant inverse mat_a");
+    let [[a2, b2], [c2, d2]] = mat_b.as_ref();
+
+    assert!((*a1 - f64::from(*a2)).abs() < f64::from(f32::EPSILON));
+    assert!((*b1 - f64::from(*b2)).abs() < f64::from(f32::EPSILON));
+    assert!((*c1 - f64::from(*c2)).abs() < f64::from(f32::EPSILON));
+    assert!((*d1 - f64::from(*d2)).abs() < f64::from(f32::EPSILON));
 }

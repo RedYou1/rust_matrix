@@ -195,3 +195,22 @@ impl<T: Clone + Not<Output = T>, const WIDTH: usize, const HEIGHT: usize> Not
         Matrix(result)
     }
 }
+
+macro_rules! impl_inverse_matrix {
+    ($($ty:ty),*) => {
+        $(
+        impl Matrix<$ty, 2, 2> {
+            pub fn inverse(&self) -> Option<Self> {
+                let [[a, b], [c, d]] = self.0;
+                let mut opp = a * d - b * c;
+                if opp == 0.0 {
+                    return None;
+                }
+                opp = 1.0 / opp;
+                Some(Self([[opp * d, opp * -b], [opp * -c, opp * a]]))
+            }
+        }
+        )*
+    };
+}
+impl_inverse_matrix!(f32, f64);
